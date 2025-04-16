@@ -5,15 +5,38 @@ import '../model.dart';
 part 'harry_state.dart';
 
 class HarryCubit extends Cubit<HarryState> {
-  HarryCubit() : super(HarryInitial());
-  void getHttp() async {
-    emit(Loading());
+  final Dio _dio;
+  List<Model> _cachedCharacters = [];
 
-    final dio = Dio();
-    final response = await dio.get('https://potterapi-fedeperin.vercel.app/en/characters');
-    final List<dynamic> data = response.data;
-    final list = data.map((e) => Model.fromJson(e)).toList();
-    emit(Success(list));
-    //print(response);
+  HarryCubit({Dio? dio}) 
+      : _dio = dio ?? Dio(),
+        super(HarryInitial());
+
+  Future<void> fetchCharacters() async {
+    try {
+      emit(Loading());
+      
+      if (_cachedCharacters.isNotEmpty) {
+        emit(Success(_cachedCharacters));
+        return;
+      }
+
+      final response = await _dio.get(
+        'https://potterapi-fedeperin.vercel.app/en/characters',
+        options: Options(
+          validateStatus: (status) => status! < 500,
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data;
+        _cachedCharacters = data.map((e) => Model.fromJson(e)).toList();
+        emit(Success(_cachedCharacters));
+      } else {
+        emit(Error('Ошибка при загрузке данных: ${response.statusCode}'));
+      }
+    } catch (e) {
+      emit(Error('Произошла ошибка: $e'));
+    }
   }
 }

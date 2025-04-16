@@ -1,11 +1,27 @@
 class Model {
-  String? fullName;
-  String? image;
+  final String? fullName;
+  final String? image;
+  final String? nickname;
 
-  Model({required this.fullName, required this.image});
+  Model({
+    this.fullName,
+    this.image,
+    this.nickname,
+  });
 
-  Model.fromJson(Map<String, dynamic> json){
-    fullName = json['fullName'];
-    image = json['image'];
+  factory Model.fromJson(Map<String, dynamic> json) {
+    return Model(
+      fullName: json['fullName'],
+      image: json['image'],
+      nickname: json['nickname'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'fullName': fullName,
+      'image': image,
+      'nickname': nickname,
+    };
   }
 }
